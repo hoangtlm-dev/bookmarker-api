@@ -1,29 +1,35 @@
 import { Request, Response } from 'express';
-
 import { Book } from '../models';
 import { IBookInput } from '../types';
 import { RESPONSE_STATUS } from '../constants';
 
 export const createBook = async (req: Request, res: Response) => {
-	const { name, authors, image, publishedDate, description } = req.body;
+	try {
+		const { name, authors, image, publishedDate, description } = req.body;
 
-	if (!name || !authors || !image || !publishedDate || !description) {
-		return res.status(422).json({
-			message: 'The field is required'
+		if (!name || !authors || !image || !publishedDate || !description) {
+			return res.status(RESPONSE_STATUS.UNPROCESSABLE_CONTENT).json({
+				message: 'The field is required'
+			});
+		}
+
+		const bookInput: IBookInput = {
+			name,
+			authors,
+			image,
+			publishedDate,
+			description
+		};
+
+		const bookCreated = await Book.create(bookInput);
+
+		return res.status(RESPONSE_STATUS.CREATED).json({ data: bookCreated });
+	} catch (error) {
+		return res.status(RESPONSE_STATUS.INTERNAL_SERVER_ERROR).json({
+			message: 'Internal server error',
+			error: error.message
 		});
 	}
-
-	const bookInput: IBookInput = {
-		name,
-		authors,
-		image,
-		publishedDate,
-		description
-	};
-
-	const bookCreated = await Book.create(bookInput);
-
-	return res.status(RESPONSE_STATUS.CREATED).json({ data: bookCreated });
 };
 
 export const getAllBooks = async (req: Request, res: Response) => {
@@ -62,52 +68,73 @@ export const getAllBooks = async (req: Request, res: Response) => {
 };
 
 export const getBookById = async (req: Request, res: Response) => {
-	const { id } = req.params;
+	try {
+		const { id } = req.params;
 
-	const book = await Book.findOne({ _id: id });
+		const book = await Book.findOne({ _id: id });
 
-	if (!book) {
-		return res.status(RESPONSE_STATUS.NOT_FOUND).json({ message: `Book with id "${id}" not found.` });
+		if (!book) {
+			return res.status(RESPONSE_STATUS.NOT_FOUND).json({ message: `Book with id "${id}" not found.` });
+		}
+
+		return res.status(RESPONSE_STATUS.OK).json({ data: book });
+	} catch (error) {
+		return res.status(RESPONSE_STATUS.INTERNAL_SERVER_ERROR).json({
+			message: 'Internal server error',
+			error: error.message
+		});
 	}
-
-	return res.status(RESPONSE_STATUS.OK).json({ data: book });
 };
 
 export const updateBook = async (req: Request, res: Response) => {
-	const { id } = req.params;
-	const { name, authors, image, publishedDate, description } = req.body;
+	try {
+		const { id } = req.params;
+		const { name, authors, image, publishedDate, description } = req.body;
 
-	const book = await Book.findOne({ _id: id });
+		const book = await Book.findOne({ _id: id });
 
-	if (!book) {
-		return res.status(RESPONSE_STATUS.NOT_FOUND).json({ message: `Book with id "${id}" not found.` });
-	}
+		if (!book) {
+			return res.status(RESPONSE_STATUS.NOT_FOUND).json({ message: `Book with id "${id}" not found.` });
+		}
 
-	if (!name || !authors || !image || !publishedDate || !description) {
-		return res.status(RESPONSE_STATUS.UNPROCESSABLE_CONTENT).json({
-			message: 'The field is required'
+		if (!name || !authors || !image || !publishedDate || !description) {
+			return res.status(RESPONSE_STATUS.UNPROCESSABLE_CONTENT).json({
+				message: 'The field is required'
+			});
+		}
+
+		const bookInput: IBookInput = {
+			name,
+			authors,
+			image,
+			publishedDate,
+			description
+		};
+
+		await Book.updateOne({ _id: id }, bookInput);
+
+		const bookUpdated = await Book.findById(id, bookInput);
+
+		return res.status(RESPONSE_STATUS.OK).json({ data: bookUpdated });
+	} catch (error) {
+		return res.status(RESPONSE_STATUS.INTERNAL_SERVER_ERROR).json({
+			message: 'Internal server error',
+			error: error.message
 		});
 	}
-
-	const bookInput: IBookInput = {
-		name,
-		authors,
-		image,
-		publishedDate,
-		description
-	};
-
-	await Book.updateOne({ _id: id }, bookInput);
-
-	const bookUpdated = await Book.findById(id, bookInput);
-
-	return res.status(RESPONSE_STATUS.OK).json({ data: bookUpdated });
 };
 
 export const deleteBook = async (req: Request, res: Response) => {
-	const { id } = req.params;
+	try {
+		const { id } = req.params;
 
-	await Book.findByIdAndDelete(id);
+		await Book.findByIdAndDelete(id);
 
-	return res.status(RESPONSE_STATUS.OK).json({ message: 'Book deleted successfully.' });
+		return res.status(RESPONSE_STATUS.OK).json({ message: 'Book deleted successfully.' });
+	} catch (error) {
+		return res.status(RESPONSE_STATUS.INTERNAL_SERVER_ERROR).json({
+			message: 'Internal server error',
+			error: error.message
+		});
+	}
 };
