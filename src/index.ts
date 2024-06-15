@@ -8,6 +8,7 @@ import compression from 'compression';
 import cors from 'cors';
 
 import { connectToDatabase } from './configs';
+import { bookRoute } from './routes';
 
 const app = express();
 
@@ -17,14 +18,12 @@ app.use(
 	})
 );
 
-app.get('/', (req, res) => {
-	res.send('Hello from nodejs');
-});
-
 app.use(compression());
 app.use(bodyParser.json());
 
 connectToDatabase();
+
+app.use('/', bookRoute());
 
 const server = http.createServer(app);
 
