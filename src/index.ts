@@ -7,7 +7,7 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import cors from 'cors';
 
-import { connectToDatabase } from './services';
+import { connectToDatabase } from './configs';
 
 const app = express();
 
@@ -16,6 +16,10 @@ app.use(
 		credentials: true
 	})
 );
+
+app.get('/', (req, res) => {
+	res.send('Hello from nodejs');
+});
 
 app.use(compression());
 app.use(bodyParser.json());
