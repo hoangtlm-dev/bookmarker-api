@@ -1,8 +1,13 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import http from 'http';
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import cors from 'cors';
+
+import { connectToDatabase } from './services';
 
 const app = express();
 
@@ -14,6 +19,8 @@ app.use(
 
 app.use(compression());
 app.use(bodyParser.json());
+
+connectToDatabase();
 
 const server = http.createServer(app);
 
